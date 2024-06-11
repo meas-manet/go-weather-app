@@ -2,14 +2,14 @@ package fetchweather
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 )
 
-// Define a structure to parse the JSON response
+// WeatherResponse represents the structure of the weather data returned by the API.
 type WeatherResponse struct {
 	Coord struct {
 		Lon float64 `json:"lon"`
@@ -58,19 +58,47 @@ type WeatherResponse struct {
 	Cod      int    `json:"cod"`
 }
 
-// FetchWeather fetches weather data for a specified city using the API key from environment variables
+// FetchWeather fetches weather data for a specified city using the API key from environment variables.
 func FetchWeather(city string) (WeatherResponse, error) {
-	apiKey := os.Getenv("API_KEY")
-	if apiKey == "" {
-		log.Fatal("API_KEY environment variable is not set")
+	apiKey, err := getAPIKey()
+	if err != nil {
+		return WeatherResponse{}, err
 	}
 
-	url := "http://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + apiKey + "&units=metric"
+	url := buildWeatherAPIURL(city, apiKey)
+	weatherResponse, err := getWeatherData(url)
+	if err != nil {
+		return WeatherResponse{}, err
+	}
+
+	return weatherResponse, nil
+}
+
+// getAPIKey retrieves the API key from the environment variables.
+func getAPIKey() (string, error) {
+	apiKey := os.Getenv("API_KEY")
+	if apiKey == "" {
+		return "", errors.New("API_KEY environment variable is not set")
+	}
+	return apiKey, nil
+}
+
+// buildWeatherAPIURL constructs the URL for fetching weather data.
+func buildWeatherAPIURL(city, apiKey string) string {
+	return fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=metric", city, apiKey)
+}
+
+// getWeatherData sends a request to the provided URL and parses the response into a WeatherResponse.
+func getWeatherData(url string) (WeatherResponse, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return WeatherResponse{}, fmt.Errorf("error fetching weather data: %v", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return WeatherResponse{}, fmt.Errorf("unexpected HTTP status: %s", resp.Status)
+	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -78,11 +106,9 @@ func FetchWeather(city string) (WeatherResponse, error) {
 	}
 
 	var weatherResponse WeatherResponse
-	err = json.Unmarshal(body, &weatherResponse)
-	if err != nil {
+	if err := json.Unmarshal(body, &weatherResponse); err != nil {
 		return WeatherResponse{}, fmt.Errorf("error unmarshalling JSON: %v", err)
 	}
 
 	return weatherResponse, nil
-
 }

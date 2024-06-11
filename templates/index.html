@@ -17,6 +17,29 @@
       class="min-h-screen flex items-center justify-center"
     >
       <div class="flex flex-col bg-white rounded p-4 w-full max-w-xs">
+        <!-- City Input Form -->
+        <form
+          id="city-form"
+          hx-post="/update-city"
+          hx-trigger="submit"
+          hx-swap="none"
+          class="mb-4"
+        >
+          <input
+            type="text"
+            name="city"
+            class="p-2 border border-gray-300 rounded w-full"
+            placeholder="Enter city name"
+            required
+          />
+          <button
+            type="submit"
+            class="mt-2 p-2 bg-[#818CF8] text-white rounded w-full"
+          >
+            Get Weather
+          </button>
+        </form>
+        <!-- Weather Data Display -->
         <div class="font-bold text-xl">
           <div id="weather-data-name"></div>
         </div>

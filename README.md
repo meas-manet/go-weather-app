@@ -8,4 +8,4 @@ The Weather App is a real-time weather monitoring application designed to provid
 - **Dynamic City Selection**: Users can enter any city name to get current weather data for that location.
 - **Responsive Design**: The app is designed with a clean, responsive interface, ensuring accessibility and usability across various devices.
 
-![image](assets/go-weather.png)
+![image](assets/go-weather-search.png)
